@@ -14,6 +14,8 @@ java maven项目，可以使用`mvn package`进行编译
 - "%E5%98%8D%E5%98%8ASet-CRLF-injection:crlftoken=injection"
 ```
 可以在resources/config.yml修改
+# 参考
+[https://github.com/pmiaowu/BurpFastJsonScan](https://github.com/pmiaowu/BurpFastJsonScan)
 # 免责声明
 ---
 该工具仅用于安全自查检测
