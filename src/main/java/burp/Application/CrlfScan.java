@@ -34,6 +34,7 @@ public class CrlfScan {
         this.payloads = this.yamlReader.getStringList("Application.payloads");
         this.iRequestInfo = this.helpers.analyzeRequest(requestResponse);
         this.runCrlfScan();
+        
     }
 
     private void runCrlfScan(){
