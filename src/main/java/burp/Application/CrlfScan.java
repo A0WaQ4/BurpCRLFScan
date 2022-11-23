@@ -41,10 +41,10 @@ public class CrlfScan {
         String[] firstHeader = requestHeader.get(0).split(" ");
         for(String payload:this.payloads){
             if(this.requestParameters.isEmptyParameters()){
-                String newFirstHeader = "Get "+firstHeader[1]+payload+" "+firstHeader[2];
+                String newFirstHeader = "GET "+firstHeader[1]+payload+" "+firstHeader[2];
                 requestHeader.set(0,newFirstHeader);
             }else{
-                String newFirstHeader = "Get " + getTargetPath(firstHeader[1]) + this.getParametersPayload(payload) + " " + firstHeader[2];
+                String newFirstHeader = "GET " + getTargetPath(firstHeader[1]) + this.getParametersPayload(payload) + " " + firstHeader[2];
                 requestHeader.set(0,newFirstHeader);
             }
             requestHeader.removeIf(header -> header.startsWith("Content-Type"));
