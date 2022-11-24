@@ -27,7 +27,7 @@ java maven项目，可以使用`mvn package`进行编译
 
 ### 0x02 插件
 
-代理访问http://yourip:8080，扫描出结果
+代理访问http://，扫描出结果
 
 ![image-20221124231706096](https://raw.githubusercontent.com/A0WaQ4/BurpCRLFScan/main/img/image-20221124231706096.png)
 
@@ -36,6 +36,10 @@ java maven项目，可以使用`mvn package`进行编译
 ---
 
 [https://github.com/pmiaowu/BurpFastJsonScan](https://github.com/pmiaowu/BurpFastJsonScan)
+
+# 待完成
+
+- [ ] 请求走私扫描
 
 # 免责声明
 ---
