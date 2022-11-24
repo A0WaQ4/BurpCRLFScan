@@ -14,8 +14,29 @@ java maven项目，可以使用`mvn package`进行编译
 - "%E5%98%8D%E5%98%8ASet-CRLF-injection:crlftoken=injection"
 ```
 可以在resources/config.yml修改
+
+# 使用
+
+---
+
+### 00x1 CRLF环境
+
+使用vulhub中的nginx/insecure-configuration搭建环境
+
+[https://vulhub.org/#/environments/nginx/insecure-configuration/](https://vulhub.org/#/environments/nginx/insecure-configuration/)
+
+### 0x02 插件
+
+代理访问http://yourip:8080，扫描出结果
+
+![image-20221124231706096](https://raw.githubusercontent.com/A0WaQ4/BurpCRLFScan/main/img/image-20221124231706096.png)
+
 # 参考
+
+---
+
 [https://github.com/pmiaowu/BurpFastJsonScan](https://github.com/pmiaowu/BurpFastJsonScan)
+
 # 免责声明
 ---
 该工具仅用于安全自查检测
