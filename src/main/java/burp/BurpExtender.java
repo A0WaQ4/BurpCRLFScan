@@ -104,7 +104,7 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
 //
 //            this.stdout.println(name+"="+value);
 //        }
-        CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters);
+        CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
         if(crlfScan.getIsVuln()){
             int tagId = this.tags.add(
                     "CRLF",

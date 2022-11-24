@@ -2,6 +2,7 @@ package burp.Application;
 
 import burp.*;
 import burp.Bootstrap.CustomBurpParameters;
+import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
 
 import java.io.PrintWriter;
@@ -23,8 +24,9 @@ public class CrlfScan {
     private YamlReader yamlReader;
     private IRequestInfo iRequestInfo;
     private Boolean isVuln = false;
+    private CustomBurpUrl customBurpUrl;
 
-    public CrlfScan(IBurpExtenderCallbacks callbacks, IHttpRequestResponse requestResponse, CustomBurpParameters requestParameters) {
+    public CrlfScan(IBurpExtenderCallbacks callbacks, IHttpRequestResponse requestResponse, CustomBurpParameters requestParameters,CustomBurpUrl customBurpUrl) {
         this.callbacks = callbacks;
         this.helpers = callbacks.getHelpers();
         this.stderr = new PrintWriter(callbacks.getStderr(), true);
@@ -33,6 +35,7 @@ public class CrlfScan {
         this.yamlReader = YamlReader.getInstance(callbacks);
         this.payloads = this.yamlReader.getStringList("Application.payloads");
         this.iRequestInfo = this.helpers.analyzeRequest(requestResponse);
+        this.customBurpUrl= customBurpUrl;
         this.runCrlfScan();
         
     }
@@ -41,7 +44,10 @@ public class CrlfScan {
         List<String> requestHeader = this.getRequestHeaders();
         String[] firstHeader = requestHeader.get(0).split(" ");
         for(String payload:this.payloads){
-            if(this.requestParameters.isEmptyParameters()){
+            if(this.customBurpUrl.getRequestQuery()==null&&this.iRequestInfo.getMethod()=="GET"){
+                String newFirstHeader = "GET "+firstHeader[1]+payload+" "+firstHeader[2];
+                requestHeader.set(0,newFirstHeader);
+            }else if(this.requestParameters.isEmptyParameters()){
                 String newFirstHeader = "GET "+firstHeader[1]+payload+" "+firstHeader[2];
                 requestHeader.set(0,newFirstHeader);
             }else{
