@@ -1,6 +1,7 @@
 package burp;
 
 import burp.Application.CrlfScan;
+import burp.Application.HostScan;
 import burp.Bootstrap.CustomBurpParameters;
 import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
@@ -104,18 +105,43 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
 //
 //            this.stdout.println(name+"="+value);
 //        }
-        CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
-        if(crlfScan.getIsVuln()){
+        HostScan hostScan = new HostScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
+        if(hostScan.getIsVuln()){
             int tagId = this.tags.add(
-                    "CRLF",
+                    "Scanning",
                     this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
                     baseBurpUrl.getHttpRequestUrl().toString(),
                     this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
-                    "[+] found CRLF Injection",
+                    "[loading] found Host Header Attack , now testing CRLF-Injection",
                     String.valueOf(baseRequestResponse.getResponse().length),
-                    crlfScan.getVulnRequestResponse()
+                    hostScan.getVulnRequestResponse()
             );
+            CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
+            if(crlfScan.getIsVuln()){
+                this.tags.save(
+                        tagId,
+                        "CRLF",
+                        this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
+                        baseBurpUrl.getHttpRequestUrl().toString(),
+                        this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
+                        "[+] found CRLF Injection",
+                        String.valueOf(baseRequestResponse.getResponse().length),
+                        crlfScan.getVulnRequestResponse()
+                );
+            }else{
+                this.tags.save(
+                        tagId,
+                        "Response Header Control",
+                        this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
+                        baseBurpUrl.getHttpRequestUrl().toString(),
+                        this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
+                        "[+] just found Response Header Control",
+                        String.valueOf(baseRequestResponse.getResponse().length),
+                        hostScan.getVulnRequestResponse()
+                );
+            }
         }
+
 
         // 输出UI
 
