@@ -27,7 +27,13 @@ java maven项目，可以使用`mvn package`进行编译
 
 ### 0x02 插件
 
-代理访问`http://yourip:8080`，扫描出结果
+代理访问`http://yourip:8080`，开始扫描
+
+扫描CRLF前先确认Response Header是否可控
+
+![image-20221126210035.png](https://raw.githubusercontent.com/A0WaQ4/BurpCRLFScan/main/img/image-20221126210035.png)
+
+若Response Header可控，则开始扫描CRLF-Injection，获得结果
 
 ![image-20221124231706096](https://raw.githubusercontent.com/A0WaQ4/BurpCRLFScan/main/img/image-20221124231706096.png)
 
