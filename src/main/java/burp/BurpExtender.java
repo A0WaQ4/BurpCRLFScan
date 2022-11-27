@@ -1,22 +1,15 @@
 package burp;
 
 import burp.Application.CrlfScan;
-import burp.Application.HostScan;
 import burp.Bootstrap.CustomBurpParameters;
 import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
-import burp.IBurpExtender;
-import burp.IBurpExtenderCallbacks;
-import burp.ITab;
 import burp.UI.*;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionStateListener {
     public static String NAME="CRLFScan";
@@ -105,7 +98,7 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
 //
 //            this.stdout.println(name+"="+value);
 //        }
-        HostScan hostScan = new HostScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
+        CrlfScan hostScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.hostPayloads");
         if(hostScan.getIsVuln()){
             int tagId = this.tags.add(
                     "Scanning",
@@ -116,7 +109,7 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
                     String.valueOf(baseRequestResponse.getResponse().length),
                     hostScan.getVulnRequestResponse()
             );
-            CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
+            CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.payloads");
             if(crlfScan.getIsVuln()){
                 this.tags.save(
                         tagId,
