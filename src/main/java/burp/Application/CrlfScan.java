@@ -37,7 +37,7 @@ public class CrlfScan {
         this.iRequestInfo = this.helpers.analyzeRequest(requestResponse);
         this.customBurpUrl= customBurpUrl;
         this.runCrlfScan();
-        
+
     }
 
     private void runCrlfScan(){
