@@ -4,18 +4,12 @@ import burp.Application.CrlfScan;
 import burp.Bootstrap.CustomBurpParameters;
 import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
-import burp.IBurpExtender;
-import burp.IBurpExtenderCallbacks;
-import burp.ITab;
 import burp.UI.*;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionStateListener {
     public static String NAME="CRLFScan";
@@ -104,18 +98,43 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
 //
 //            this.stdout.println(name+"="+value);
 //        }
-        CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl);
-        if(crlfScan.getIsVuln()){
+        CrlfScan hostScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.hostPayloads");
+        if(hostScan.getIsVuln()){
             int tagId = this.tags.add(
-                    "CRLF",
+                    "Scanning",
                     this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
                     baseBurpUrl.getHttpRequestUrl().toString(),
                     this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
-                    "[+] found CRLF Injection",
+                    "[loading] found Host Header Attack , now testing CRLF-Injection",
                     String.valueOf(baseRequestResponse.getResponse().length),
-                    crlfScan.getVulnRequestResponse()
+                    hostScan.getVulnRequestResponse()
             );
+            CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.payloads");
+            if(crlfScan.getIsVuln()){
+                this.tags.save(
+                        tagId,
+                        "CRLF",
+                        this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
+                        baseBurpUrl.getHttpRequestUrl().toString(),
+                        this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
+                        "[+] found CRLF Injection",
+                        String.valueOf(baseRequestResponse.getResponse().length),
+                        crlfScan.getVulnRequestResponse()
+                );
+            }else{
+                this.tags.save(
+                        tagId,
+                        "Response Header Control",
+                        this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
+                        baseBurpUrl.getHttpRequestUrl().toString(),
+                        this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
+                        "[+] just found Response Header Control",
+                        String.valueOf(baseRequestResponse.getResponse().length),
+                        hostScan.getVulnRequestResponse()
+                );
+            }
         }
+
 
         // 输出UI
 

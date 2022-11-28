@@ -23,17 +23,18 @@ public class CrlfScan {
     private List<String> payloads;
     private YamlReader yamlReader;
     private IRequestInfo iRequestInfo;
-    private Boolean isVuln = false;
+    private Boolean ifVuln = false;
     private CustomBurpUrl customBurpUrl;
+    private IHttpRequestResponse newResponseRequest;
 
-    public CrlfScan(IBurpExtenderCallbacks callbacks, IHttpRequestResponse requestResponse, CustomBurpParameters requestParameters,CustomBurpUrl customBurpUrl) {
+    public CrlfScan(IBurpExtenderCallbacks callbacks, IHttpRequestResponse requestResponse, CustomBurpParameters requestParameters,CustomBurpUrl customBurpUrl,String payload) {
         this.callbacks = callbacks;
         this.helpers = callbacks.getHelpers();
         this.stderr = new PrintWriter(callbacks.getStderr(), true);
         this.requestResponse = requestResponse;
         this.requestParameters = requestParameters;
         this.yamlReader = YamlReader.getInstance(callbacks);
-        this.payloads = this.yamlReader.getStringList("Application.payloads");
+        this.payloads = this.yamlReader.getStringList(payload);
         this.iRequestInfo = this.helpers.analyzeRequest(requestResponse);
         this.customBurpUrl= customBurpUrl;
         this.runCrlfScan();
@@ -59,10 +60,10 @@ public class CrlfScan {
             byte[] requestBody = body.getBytes();
             byte[] newRequest = this.helpers.buildHttpMessage(requestHeader,requestBody);
             IHttpService httpService = this.requestResponse.getHttpService();
-            IHttpRequestResponse newRequestResponse = this.callbacks.makeHttpRequest(httpService,newRequest);
-            if(this.isCRLFVuln(newRequestResponse)){
-                this.vulnRequestResponse=newRequestResponse;
-                this.isVuln = true;
+            this.newResponseRequest = this.callbacks.makeHttpRequest(httpService,newRequest);
+            if(this.isVuln()){
+                this.vulnRequestResponse=newResponseRequest;
+                this.ifVuln = true;
                 return;
             }
         }
@@ -90,24 +91,27 @@ public class CrlfScan {
         return parametersPayload;
     }
 
+    private byte[] getResponse(){
+        return this.newResponseRequest.getResponse();
+    }
 
-
-    private Boolean isCRLFVuln(IHttpRequestResponse newRequestResponse){
-        byte[] response = newRequestResponse.getResponse();
-        List<String> analyzedResponse = this.helpers.analyzeResponse(response).getHeaders();
+    private Boolean isVuln(){
+        List<String> analyzedResponse = this.helpers.analyzeResponse(this.getResponse()).getHeaders();
         for(String headers : analyzedResponse){
-            if(headers.startsWith("Set-CRLF-injection") || headers.startsWith(" Set-CRLF-injection")){
+            if(headers.startsWith("Set-CRLF-injection") || headers.startsWith(" Set-CRLF-injection")||headers.contains("Set-Host-Header-Response")){
                 return true;
             }
         }
         return false;
     }
 
+
+
     public IHttpRequestResponse getVulnRequestResponse(){
         return this.vulnRequestResponse;
     }
 
     public Boolean getIsVuln(){
-        return this.isVuln;
+        return this.ifVuln;
     }
 }

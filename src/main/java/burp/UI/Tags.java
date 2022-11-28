@@ -223,6 +223,46 @@ public class Tags extends AbstractTableModel implements ITab, IMessageEditorCont
             return id;
         }
     }
+    /**
+     * 更新任务状态至任务栏面板
+     *
+     * @param id
+     * @param VulName
+     * @param Method
+     * @param url
+     * @param status
+     * @param Info
+     * @param requestResponse
+     * @return int id
+     */
+    public int save(int id, String VulName, String Method,String url, String status, String Info, String Size,IHttpRequestResponse requestResponse) {
+        Tags.TablesData dataEntry = Tags.this.Udatas.get(id);
+        String startTime = dataEntry.startTime;
+
+        Date d = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String endTime = sdf.format(d);
+
+        synchronized (this.Udatas) {
+            this.Udatas.set(
+                    id,
+                    new TablesData(
+                            id,
+                            VulName,
+                            Method,
+                            url,
+                            status,
+                            Info,
+                            Size,
+                            requestResponse,
+                            startTime,
+                            endTime
+                    )
+            );
+            fireTableRowsUpdated(id, id);
+            return id;
+        }
+    }
 
 
     public class URLTable extends JTable {
