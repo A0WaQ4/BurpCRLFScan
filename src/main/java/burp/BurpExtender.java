@@ -1,6 +1,7 @@
 package burp;
 
 import burp.Application.CrlfScan;
+import burp.Bootstrap.CustomBurpHelpers;
 import burp.Bootstrap.CustomBurpParameters;
 import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
@@ -83,21 +84,9 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
 //            this.stdout.println("url . black");
             return null;
         }
+//        CustomBurpHelpers customBurpHelpers = new CustomBurpHelpers(this.callbacks);
+//        this.stdout.println(customBurpHelpers.getHttpRequestBody(baseRequestResponse.getRequest()));
 
-        // 获取请求包参数
-//        List<IParameter> parameters = baseBurpParameters.getParameters();
-
-        // 判断是否存在可控参数
-//        if(baseBurpParameters.isEmptyParameters()){
-//            this.stdout.println("Empty");
-//        }
-        // 拼接参数
-//        for (IParameter parameter : parameters) {
-//            String name = parameter.getName();
-//            String value = parameter.getValue();
-//
-//            this.stdout.println(name+"="+value);
-//        }
         CrlfScan hostScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.hostPayloads");
         if(hostScan.getIsVuln()){
             int tagId = this.tags.add(

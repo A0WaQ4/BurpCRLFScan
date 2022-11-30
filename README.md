@@ -1,10 +1,13 @@
 # BurpCRLFScan
+
 ---
 使用java编写的CRLF-Injection的burp被动扫描插件
 # 简介
+
 ---
 java maven项目，可以使用`mvn package`进行编译
 # payload
+
 ---
 ```url
 - "%0D%0A%20Set-CRLF-injection:crlftoken=injection"  
@@ -12,6 +15,9 @@ java maven项目，可以使用`mvn package`进行编译
 - "%0A%20Set-CRLF-injection:crlftoken=injection"  
 - "%2F%2E%2E%0D%0ASet-CRLF-injection:crlftoken=injection"  
 - "%E5%98%8D%E5%98%8ASet-CRLF-injection:crlftoken=injection"
+- "\u010D\u010ASet-CRLF-injection:crlftoken=injection"
+- "%C4%8DSet-CRLF-injection:crlftoken=injection"
+- "čĊSet-CRLF-injection:crlftoken=injection"
 ```
 可以在resources/config.yml修改
 
@@ -37,6 +43,7 @@ java maven项目，可以使用`mvn package`进行编译
 
 ![image-20221124231706096](https://raw.githubusercontent.com/A0WaQ4/BurpCRLFScan/main/img/image-20221124231706096.png)
 
+
 # 参考
 
 ---
@@ -48,6 +55,7 @@ java maven项目，可以使用`mvn package`进行编译
 - [ ] 请求走私扫描
 
 # 免责声明
+
 ---
 该工具仅用于安全自查检测
 
