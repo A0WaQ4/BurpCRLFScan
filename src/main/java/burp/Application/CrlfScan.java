@@ -6,22 +6,15 @@ import burp.Bootstrap.CustomBurpParameters;
 import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class CrlfScan {
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
 
     public PrintWriter stderr;
-    public PrintWriter stdout;
 
 
     private IHttpRequestResponse requestResponse;
@@ -62,7 +55,8 @@ public class CrlfScan {
                     String newFirstHeader = requestMethod + " " + firstHeader[1] + payload + " " + firstHeader[2];
                     requestHeader.set(0,newFirstHeader);
                 }else{
-                    String newFirstHeader = requestMethod + " " + getTargetPath(firstHeader[1]) + this.getParametersPayload(payload) + " " + firstHeader[2];
+                    String s = this.getParametersPayload(payload);
+                    String newFirstHeader = requestMethod + " " + getTargetPath(firstHeader[1]) + s.substring(0,s.length()-1) + " " + firstHeader[2];
                     requestHeader.set(0,newFirstHeader);
                 }
             }
@@ -71,23 +65,15 @@ public class CrlfScan {
                     body = payload;
                 }else{
                     if(this.requestParameters.isJson()&&this.isJSON(thisRequestBody.replaceAll("(\\[(.*?)])","\"test\""))){
-                        body = this.analyseJson(thisRequestBody.replaceAll("(\\[(.*?)])","\"test\""),payload).toString();
+                        body = this.analyseJson(thisRequestBody,payload);
                     }
                     if(this.requestParameters.isXFormUrlencoded()){
-                        body = this.getParametersPayload(payload);
+                        String s = this.getParametersPayload(payload);
+                        body = s.substring(1,s.length()-1);
                     }
                 }
             }
-//            if(this.customBurpUrl.getRequestQuery()==null&&this.iRequestInfo.getMethod()=="GET"){
-//                String newFirstHeader = "GET "+firstHeader[1]+payload+" "+firstHeader[2];
-//                requestHeader.set(0,newFirstHeader);
-//            }else if(this.requestParameters.isEmptyParameters()){
-//                String newFirstHeader = "GET "+firstHeader[1]+payload+" "+firstHeader[2];
-//                requestHeader.set(0,newFirstHeader);
-//            }else{
-//                String newFirstHeader = "GET " + getTargetPath(firstHeader[1]) + this.getParametersPayload(payload) + " " + firstHeader[2];
-//                requestHeader.set(0,newFirstHeader);
-//            }
+
             byte[] requestBody = body.getBytes();
             byte[] newRequest = this.helpers.buildHttpMessage(requestHeader,requestBody);
             IHttpService httpService = this.requestResponse.getHttpService();
@@ -145,24 +131,28 @@ public class CrlfScan {
      * @param jsonData
      * @return
      */
-    public  JSONObject analyseJson(String jsonData , String payload) {
-        JSONObject jsonObjectResult = new JSONObject();
-        //把传入String类型转换成JSONObject对象
-        JSONObject jsonObject = JSON.parseObject(jsonData);
-        for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
-            String key = entry.getKey();
-            Object o = entry.getValue();
-            if(o instanceof Integer || o instanceof Boolean || o == null){
-                jsonObjectResult.put(key, entry.getValue());
-            }else if(o instanceof String){
-                jsonObjectResult.put(key, entry.getValue()+payload);
-            }else if(!StringUtils.isEmpty(String.valueOf(entry.getValue())) && isJSON(entry.getValue().toString())){
-                jsonObjectResult.put(key, analyseJson(entry.getValue().toString(),payload));
+    public String  analyseJson(String jsonData , String payload) {
+        String jsonResult = "";
+        boolean j = false;
+        for(int i=0;i<jsonData.length();i++){
+            if(j&&jsonData.charAt(i) == '"'){
+                j = false;
+                continue;
             }
+            if(j){
+                continue;
+            }
+            if(jsonData.charAt(i) == '"'&&jsonData.charAt(i-1) == ':'){
+                jsonResult = jsonResult + "\"" + payload + "\"";
+                j = true;
+            }else{
+                jsonResult = jsonResult + jsonData.charAt(i);
+            }
+
         }
 
 
-        return jsonObjectResult;
+        return jsonResult;
     }
 
     /**

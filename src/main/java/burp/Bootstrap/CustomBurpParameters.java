@@ -12,7 +12,6 @@ public class CustomBurpParameters {
     private IExtensionHelpers helpers;
 
     public PrintWriter stderr;
-    public PrintWriter stdout;
 
 
     private IHttpRequestResponse requestResponse;
