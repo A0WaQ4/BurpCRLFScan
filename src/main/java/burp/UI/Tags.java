@@ -226,13 +226,14 @@ public class Tags extends AbstractTableModel implements ITab, IMessageEditorCont
     /**
      * 更新任务状态至任务栏面板
      *
-     * @param id
-     * @param VulName
-     * @param Method
-     * @param url
-     * @param status
-     * @param Info
-     * @param requestResponse
+     * @param id 漏洞编号id
+     * @param VulName 漏洞名称
+     * @param Method 请求方式
+     * @param url 漏洞url
+     * @param status 漏洞状态
+     * @param Info 漏洞信息
+     * @param Size 漏洞返回包大小
+     * @param requestResponse 请求包返回包
      * @return int id
      */
     public int save(int id, String VulName, String Method,String url, String status, String Info, String Size,IHttpRequestResponse requestResponse) {

@@ -43,6 +43,9 @@ public class CrlfScan {
 
     }
 
+    /**
+     * 漏洞扫描执行
+     */
     private void runCrlfScan(){
         List<String> requestHeader = this.getRequestHeaders();
         String[] firstHeader = requestHeader.get(0).split(" ");
@@ -66,8 +69,7 @@ public class CrlfScan {
                 }else{
                     if(this.requestParameters.isJson()&&this.isJSON(thisRequestBody.replaceAll("(\\[(.*?)])","\"test\""))){
                         body = this.analyseJson(thisRequestBody,payload);
-                    }
-                    if(this.requestParameters.isXFormUrlencoded()){
+                    }else if(this.requestParameters.isXFormUrlencoded()){
                         String s = this.getParametersPayload(payload);
                         body = s.substring(1,s.length()-1);
                     }
@@ -88,17 +90,32 @@ public class CrlfScan {
     }
 
 
-//  获取请求头
+    /**
+     * 获取请求头
+     *
+     * @return 返回请求头的列表
+     */
     private List<String> getRequestHeaders(){
         return this.iRequestInfo.getHeaders();
     }
 
+    /**
+     * 返回请求包路径
+     *
+     * @param fistHeader 请求包的第一行
+     * @return 返回request路径的字符串
+     */
     private String getTargetPath(String fistHeader){
         String[] firstHeaderSplit = fistHeader.split("\\?");
         return firstHeaderSplit[0];
     }
 
-//  获取参数payload
+    /**
+     * 拼接获取参数payload
+     *
+     * @param crlfPayload crlf的payload
+     * @return 返回拼接payload后的字符串
+     */
     private String getParametersPayload(String crlfPayload){
         String parametersPayload = "?";
         for (IParameter parameter : this.requestParameters.getParameters()) {
@@ -109,12 +126,20 @@ public class CrlfScan {
     }
 
 
-//  获取返回包
+    /**
+     * 获取返回包
+     *
+     * @return 返回Response的byte类型数据
+     */
     private byte[] getResponse(){
         return this.newResponseRequest.getResponse();
     }
 
-//    判断是否存在CRLF漏洞
+    /**
+     * 判断是否存在可控Response头或者CRLF漏洞
+     *
+     * @return 存在漏洞=true 不存在=false
+     */
     private Boolean isVuln(){
         List<String> analyzedResponse = this.helpers.analyzeResponse(this.getResponse()).getHeaders();
         for(String headers : analyzedResponse){
@@ -128,8 +153,10 @@ public class CrlfScan {
 
     /**
      * 解析json字符串，普通和嵌套类型都可
-     * @param jsonData
-     * @return
+     *
+     * @param jsonData 请求包的json数据
+     * @param payload  crlf的payload
+     * @return 返回添加payload的json字符串
      */
     public String  analyseJson(String jsonData , String payload) {
         String jsonResult = "";
@@ -157,8 +184,9 @@ public class CrlfScan {
 
     /**
      * 判断传入的参数是否为json格式
-     * @param str
-     * @return
+     *
+     * @param str 请求包的json数据
+     * @return 是json格式=true 不是=false
      */
     public  boolean isJSON(String str) {
         boolean result;
@@ -171,12 +199,21 @@ public class CrlfScan {
         return result;
     }
 
-//    返回存在漏洞到requesRespons
+
+    /**
+     * 返回存在漏洞到requesResponse
+     *
+     * @return 返回本次扫描存在漏洞的requestResponse
+     */
     public IHttpRequestResponse getVulnRequestResponse(){
         return this.vulnRequestResponse;
     }
 
-//    返回是否存在漏洞的判断
+    /**
+     * 返回是否存在漏洞的判断
+     *
+     * @return 返回本次扫描是否存在漏洞
+     */
     public Boolean getIsVuln(){
         return this.ifVuln;
     }

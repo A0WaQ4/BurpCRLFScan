@@ -38,15 +38,14 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
         callbacks.registerScannerCheck(this);
         callbacks.registerExtensionStateListener(this);
 
-
         // 配置文件
         this.yamlReader = YamlReader.getInstance(callbacks);
-
         // 基本信息输出
         this.stdout.println(basicInformationOutput());
     }
     /**
      * 基本信息输出
+     * @return
      */
     private static String basicInformationOutput() {
         String str1 = "===================================\n";
@@ -60,6 +59,11 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
 
     }
 
+    /**
+     * 进行被动扫描
+     * @param baseRequestResponse 基础的请求返回包
+     * @return null
+     */
     @Override
     public List<IScanIssue> doPassiveScan(IHttpRequestResponse baseRequestResponse) {
         List<IScanIssue> issues = new ArrayList<>();
@@ -69,40 +73,37 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
         CustomBurpUrl baseBurpUrl = new CustomBurpUrl(this.callbacks, baseRequestResponse);
         CustomBurpParameters baseBurpParameters = new CustomBurpParameters(this.callbacks,baseRequestResponse);
 
-//        this.stdout.println(baseBurpParameters.getUrl());
 
         // 判断域名黑名单
         if (domainNameBlacklist != null && domainNameBlacklist.size() >= 1) {
             if (isMatchDomainName(baseBurpUrl.getRequestHost(), domainNameBlacklist)) {
-//                this.stdout.println("url black");
                 return null;
             }
         }
 
         // 判断当前请求后缀,是否为url黑名单后缀
         if (this.isUrlBlackListSuffix(baseBurpUrl)) {
-//            this.stdout.println("url . black");
             return null;
         }
-//        CustomBurpHelpers customBurpHelpers = new CustomBurpHelpers(this.callbacks);
-//        this.stdout.println(customBurpHelpers.getHttpRequestBody(baseRequestResponse.getRequest()));
-
+        // 传入不同payload分别对Response Header进行检测
         CrlfScan hostScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.hostPayloads");
+        // 如果发现了存在Response可控 添加到面板 进行下一步扫描
         if(hostScan.getIsVuln()){
             int tagId = this.tags.add(
                     "Scanning",
                     this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
                     baseBurpUrl.getHttpRequestUrl().toString(),
                     this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
-                    "[loading] found Host Header Attack , now testing CRLF-Injection",
+                    "[*] found Response Header Controlled , now testing CRLF-Injection",
                     String.valueOf(baseRequestResponse.getResponse().length),
                     hostScan.getVulnRequestResponse()
             );
             CrlfScan crlfScan = new CrlfScan(this.callbacks,baseRequestResponse,baseBurpParameters,baseBurpUrl,"Application.payloads");
+            // 如果发现了CRLF漏洞 更新面板 否则更新为未发现漏洞
             if(crlfScan.getIsVuln()){
                 this.tags.save(
                         tagId,
-                        "CRLF",
+                        "CRLF Injection",
                         this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
                         baseBurpUrl.getHttpRequestUrl().toString(),
                         this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
@@ -113,11 +114,11 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
             }else{
                 this.tags.save(
                         tagId,
-                        "Response Header Control",
+                        "Response Header Controlled",
                         this.helpers.analyzeRequest(baseRequestResponse).getMethod(),
                         baseBurpUrl.getHttpRequestUrl().toString(),
                         this.helpers.analyzeResponse(baseRequestResponse.getResponse()).getStatusCode() + "",
-                        "[+] just found Response Header Control",
+                        "[*] just found Response Header Controlled",
                         String.valueOf(baseRequestResponse.getResponse().length),
                         hostScan.getVulnRequestResponse()
                 );
@@ -136,7 +137,7 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
      *
      * @param domainName     需匹配的域名
      * @param domainNameList 待匹配的域名列表
-     * @return
+     * @return 是=true 否=false
      */
     private static Boolean isMatchDomainName(String domainName, List<String> domainNameList) {
         domainName = domainName.trim();
@@ -213,10 +214,9 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
     /**
      * 判断是否url黑名单后缀
      * 大小写不区分
-     * 是 = true, 否 = false
      *
-     * @param burpUrl
-     * @return
+     * @param burpUrl 目标url
+     * @return 是 = true, 否 = false
      */
     private boolean isUrlBlackListSuffix(CustomBurpUrl burpUrl) {
         if (!this.yamlReader.getBoolean("urlBlackListSuffix.config.isStart")) {

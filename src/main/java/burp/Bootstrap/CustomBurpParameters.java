@@ -30,11 +30,20 @@ public class CustomBurpParameters {
         this.requestHeaders = iRequestInfo.getHeaders();
     }
 
-    // 判断请求包中是否存在可控参数
+    /**
+     * 判断请求包中是否存在参数
+     *
+     * @return
+     */
     public boolean isEmptyParameters(){
         return this.parameters.isEmpty();
     }
 
+    /**
+     * 判断请求是否为json
+     *
+     * @return
+     */
     public boolean isJson(){
         for(String requestHeader:this.requestHeaders){
             if(requestHeader.startsWith("Content-Type:")&&requestHeader.contains("application/json"))
@@ -43,6 +52,11 @@ public class CustomBurpParameters {
         return false;
     }
 
+    /**
+     * 判断请求是否为普通类型
+     *
+     * @return
+     */
     public boolean isXFormUrlencoded(){
         for(String requestHeader:this.requestHeaders){
             if(requestHeader.startsWith("Content-Type:")&&requestHeader.contains("application/x-www-form-urlencoded"))
@@ -51,12 +65,14 @@ public class CustomBurpParameters {
         return false;
     }
 
-    //获取请求的参数
+
+    /**
+     * 获取请求的参数
+     *
+     * @return
+     */
     public List<IParameter> getParameters(){
         return this.parameters;
     }
 
-    public URL getUrl(){
-        return this.iRequestInfo.getUrl();
-    }
 }
