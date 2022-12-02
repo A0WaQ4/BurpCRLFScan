@@ -6,6 +6,17 @@
 
 ---
 java maven项目，可以使用`mvn package`进行编译
+
+# 更新
+
+---
+```
+1.0 - 首次提交
+1.1 - 取消对cookie对扫描
+1.2 - 在开始CRLF注入扫描前先判断Response Header是否可控
+1.3 - 添加了对json的扫描
+```
+
 # payload
 
 ---
@@ -53,18 +64,6 @@ java maven项目，可以使用`mvn package`进行编译
 # 待完成
 
 - [ ] 请求走私扫描
-
-# 更新
-
----
-```
-1.0 - 首次提交
-1.1 - 取消对cookie对扫描
-1.2 - 在开始CRLF注入扫描前先判断Response Header是否可控
-1.3 - 添加了对json的扫描
-```
-
-
 
 # 免责声明
 
