@@ -49,9 +49,11 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
      */
     private static String basicInformationOutput() {
         String str1 = "===================================\n";
-        String str2 = String.format("loading %s success\n", NAME);
-        String str3 = "===================================\n";
-        String detail = str1 + str2 + str3 ;
+        String str2 = String.format("LOADING %s SUCCESS\n", NAME);
+        String str3 = String.format("GitHub:https://github.com/A0WaQ4/BurpCRLFScan\n");
+        String str4 = String.format("Author:A0WaQ4\n");
+        String str5 = "===================================\n";
+        String detail = str1 + str2 + str3 + str4 + str5;
         return detail;
     }
     @Override

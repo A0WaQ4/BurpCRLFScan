@@ -53,13 +53,15 @@ public class CrlfScan {
         String body = "";
         String thisRequestBody = this.customBurpHelpers.getHttpRequestBody(this.requestResponse.getRequest());
         for(String payload:this.payloads){
+
             if(requestMethod == "GET"){
                 if(this.customBurpUrl.getRequestQuery() == null){
                     String newFirstHeader = requestMethod + " " + firstHeader[1] + payload + " " + firstHeader[2];
                     requestHeader.set(0,newFirstHeader);
                 }else{
-                    String s = this.getParametersPayload(payload);
-                    String newFirstHeader = requestMethod + " " + getTargetPath(firstHeader[1]) + s.substring(0,s.length()-1) + " " + firstHeader[2];
+//                    String s = this.getParametersPayload(payload);
+                    String[] firstHeaderParameters = firstHeader[1].split("\\?");
+                    String newFirstHeader = requestMethod + " " + getTargetPath(firstHeader[1]) + "?" + this.analyseParameters(firstHeaderParameters[1],payload) + " " + firstHeader[2];
                     requestHeader.set(0,newFirstHeader);
                 }
             }
@@ -70,8 +72,7 @@ public class CrlfScan {
                     if(this.requestParameters.isJson()&&this.isJSON(thisRequestBody.replaceAll("(\\[(.*?)])","\"test\""))){
                         body = this.analyseJson(thisRequestBody,payload);
                     }else if(this.requestParameters.isXFormUrlencoded()){
-                        String s = this.getParametersPayload(payload);
-                        body = s.substring(1,s.length()-1);
+                        body = this.analyseParameters(thisRequestBody,payload);
                     }
                 }
             }
@@ -110,20 +111,20 @@ public class CrlfScan {
         return firstHeaderSplit[0];
     }
 
-    /**
-     * 拼接获取参数payload
-     *
-     * @param crlfPayload crlf的payload
-     * @return 返回拼接payload后的字符串
-     */
-    private String getParametersPayload(String crlfPayload){
-        String parametersPayload = "?";
-        for (IParameter parameter : this.requestParameters.getParameters()) {
-            String name = parameter.getName();
-            parametersPayload = parametersPayload + name + "=" + crlfPayload + "&";
-        }
-        return parametersPayload;
-    }
+//    /**
+//     * 拼接获取参数payload
+//     *
+//     * @param crlfPayload crlf的payload
+//     * @return 返回拼接payload后的字符串
+//     */
+//    private String getParametersPayload(String crlfPayload){
+//        String parametersPayload = "?";
+//        for (IParameter parameter : this.requestParameters.getParameters()) {
+//            String name = parameter.getName();
+//            parametersPayload = parametersPayload + name + "=" + crlfPayload + "&";
+//        }
+//        return parametersPayload;
+//    }
 
 
     /**
@@ -148,6 +149,23 @@ public class CrlfScan {
             }
         }
         return false;
+    }
+
+    /**
+     * 分析request包中参数字符串
+     *
+     * @param parametersData 参数字符串
+     * @param payload crlfPayload
+     * @return 返回拼接后的参数字符串
+     */
+    private String analyseParameters(String parametersData, String payload){
+        String parametersResult = "";
+        String[] parametersDataAnalyse = parametersData.split("&");
+        for(int i = 0 ; i < parametersDataAnalyse.length ; i++){
+            String[] parameter = parametersDataAnalyse[i].split("=");
+            parametersResult = parametersResult + parameter[0] + "=" + payload + "&";
+        }
+        return parametersResult.substring(0 , parametersResult.length()-1);
     }
 
 
