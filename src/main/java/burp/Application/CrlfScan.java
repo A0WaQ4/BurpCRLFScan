@@ -6,9 +6,13 @@ import burp.Bootstrap.CustomBurpParameters;
 import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
 import com.alibaba.fastjson.JSON;
+import org.dom4j.DocumentHelper;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CrlfScan {
     private IBurpExtenderCallbacks callbacks;
@@ -69,10 +73,15 @@ public class CrlfScan {
                 if(thisRequestBody == null){
                     body = payload;
                 }else{
-                    if(this.requestParameters.isJson()&&this.isJSON(thisRequestBody.replaceAll("(\\[(.*?)])","\"test\""))){
-                        body = this.analyseJson(thisRequestBody,payload);
-                    }else if(this.requestParameters.isXFormUrlencoded()){
-                        body = this.analyseParameters(thisRequestBody,payload);
+                    switch (this.analyzeRequest().getContentType()){
+                        case 3:
+                            body = this.analyseXML(thisRequestBody , payload);
+                            break;
+                        case 4:
+                            body = this.analyseJson(thisRequestBody, payload);
+                            break;
+                        default:
+                            body = this.analyseParameters(thisRequestBody, payload);
                     }
                 }
             }
@@ -90,6 +99,10 @@ public class CrlfScan {
         return;
     }
 
+
+    public IRequestInfo analyzeRequest() {
+        return this.helpers.analyzeRequest(this.requestResponse.getRequest());
+    }
 
     /**
      * 获取请求头
@@ -110,21 +123,6 @@ public class CrlfScan {
         String[] firstHeaderSplit = fistHeader.split("\\?");
         return firstHeaderSplit[0];
     }
-
-//    /**
-//     * 拼接获取参数payload
-//     *
-//     * @param crlfPayload crlf的payload
-//     * @return 返回拼接payload后的字符串
-//     */
-//    private String getParametersPayload(String crlfPayload){
-//        String parametersPayload = "?";
-//        for (IParameter parameter : this.requestParameters.getParameters()) {
-//            String name = parameter.getName();
-//            parametersPayload = parametersPayload + name + "=" + crlfPayload + "&";
-//        }
-//        return parametersPayload;
-//    }
 
 
     /**
@@ -163,7 +161,17 @@ public class CrlfScan {
         String[] parametersDataAnalyse = parametersData.split("&");
         for(int i = 0 ; i < parametersDataAnalyse.length ; i++){
             String[] parameter = parametersDataAnalyse[i].split("=");
-            parametersResult = parametersResult + parameter[0] + "=" + payload + "&";
+            switch (isJSONOrXML(parameter[1])){
+                case 0:
+                    parametersResult = parametersResult + parameter[0] + "=" + payload + "&";
+                    break;
+                case 1:
+                    parametersResult = parametersResult + parameter[0] + "=" + analyseJson(parameter[1],payload) + "&";
+                    break;
+                case 2:
+                    parametersResult = parametersResult + parameter[0] + "=" + analyseXML(parameter[1],payload) + "&";
+                    break;
+            }
         }
         return parametersResult.substring(0 , parametersResult.length()-1);
     }
@@ -201,20 +209,44 @@ public class CrlfScan {
     }
 
     /**
-     * 判断传入的参数是否为json格式
+     * 解析XML字符串
      *
-     * @param str 请求包的json数据
-     * @return 是json格式=true 不是=false
+     * @param XMLData
+     * @param payload
+     * @return 返回添加了payload的字符串
      */
-    public  boolean isJSON(String str) {
-        boolean result;
-        try {
-            JSON.parse(str);
-            result = true;
-        } catch (Exception e) {
-            result = false;
+    public String analyseXML(String XMLData, String payload){
+        List<String> list = new ArrayList<String>();
+        Pattern pattern = Pattern.compile(">(.*?)</");
+        Matcher m = pattern.matcher(XMLData);
+        while (m.find()) {
+            list.add(m.group(1));
         }
-        return result;
+        for (String str: list){
+            XMLData = XMLData.replace(">" + str + "</", ">" + payload + "</");
+        }
+        return XMLData;
+    }
+
+    /**
+     * 返回str为json或xml
+     *
+     * @param str 需要判断的字符串
+     * @return JSON = 1、 XML = 2、 others = 0
+     */
+    public int isJSONOrXML(String str) {
+        try {
+            JSON.parse(str.replaceAll("(\\[(.*?)])","\"test\""));
+            return 1;
+        } catch (Exception e) {
+        }
+        try {
+            DocumentHelper.parseText(str);
+            return 2;
+        } catch (Exception e) {
+        }
+
+        return 0;
     }
 
 

@@ -7,12 +7,13 @@ import burp.Bootstrap.CustomBurpUrl;
 import burp.Bootstrap.YamlReader;
 import burp.UI.*;
 
+import javax.swing.*;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionStateListener {
+public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionStateListener ,IContextMenuFactory{
     public static String NAME="CRLFScan";
     public Tags tags;
     private IBurpExtenderCallbacks callbacks;
@@ -113,6 +114,20 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
                         String.valueOf(baseRequestResponse.getResponse().length),
                         crlfScan.getVulnRequestResponse()
                 );
+                issues.add(new CustomScanIssue(
+                        baseBurpUrl.getHttpRequestUrl(),
+                        "CRLF-Injection",
+                        0,
+                        "High",
+                        "Certain",
+                        null,
+                        null,
+                        "detail",
+                        null,
+                        new IHttpRequestResponse[]{crlfScan.getVulnRequestResponse()},
+                        crlfScan.getVulnRequestResponse().getHttpService()
+                ));
+                return issues;
             }else{
                 this.tags.save(
                         tagId,
@@ -127,10 +142,7 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
             }
         }
 
-
         // 输出UI
-
-
         return null;
     }
 
@@ -213,6 +225,12 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
         return false;
     }
 
+
+    @Override
+    public List<JMenuItem> createMenuItems(IContextMenuInvocation iContextMenuInvocation) {
+        return null;
+    }
+
     /**
      * 判断是否url黑名单后缀
      * 大小写不区分
@@ -251,4 +269,5 @@ public class BurpExtender implements IBurpExtender, IScannerCheck, IExtensionSta
     public int consolidateDuplicateIssues(IScanIssue iScanIssue, IScanIssue iScanIssue1) {
         return 0;
     }
+
 }
